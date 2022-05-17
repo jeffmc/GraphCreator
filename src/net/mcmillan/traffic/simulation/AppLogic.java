@@ -10,6 +10,9 @@ import net.mcmillan.traffic.math.IVec2;
 // Class meant to handle and organize all logic of the application
 public class AppLogic {
 	
+	// Data/Scene
+	public Graph graph = new Graph();
+	
 	// Subsystems
 	private EventQueue eventq = new EventQueue();
 	public EventQueue getEventQueue() { return eventq; }
@@ -47,6 +50,7 @@ public class AppLogic {
 			stepOnce = false;
 		}
 	}
+	
 	public void update(long delta) {
 		
 	}
@@ -54,10 +58,12 @@ public class AppLogic {
 	// Dragging TODO: Replace drag mode with more sophisticated Drag System
 	private int dragMode = -1;
 	public int getDragMode() { return dragMode; }
-	public static final int DRAG_SELECT_MODE = 1, DRAG_CAM_MODE = 0;
+	public static final int DRAG_EDGE_MODE = 2, DRAG_SELECT_MODE = 1, DRAG_CAM_MODE = 0;
 	public IVec2 mstart = IVec2.make(), mnow = IVec2.make(), msize = IVec2.make(), morigin = IVec2.make();
 	private int cox, coy, msx, msy; // Cam original x,y / Mouse drag start x,y TODO: Place these variables into DragHandler system
 
+	private ITransform2D fn = null;
+	
 	public void pollEvents() {
 		eventq.unload();
 		while (!eventq.unloadedEmpty()) {
@@ -70,10 +76,14 @@ public class AppLogic {
 				break;
 			case Event.MOUSE_PRESSED:
 				switch (e.button()) {
+//				case Event.BUTTON1:
+//					dragMode = DRAG_SELECT_MODE;
+//					setMouseNowRelativeToCam(e);
+//					mstart.set(mnow);
+//					break;
 				case Event.BUTTON1:
-					dragMode = DRAG_SELECT_MODE;
-					setMouseNowRelativeToCam(e);
-					mstart.set(mnow);
+					dragMode = DRAG_EDGE_MODE;
+					fn = graph.nodeAt(IVec2.make(e.x(), e.y()));
 					break;
 				case Event.BUTTON2:
 					dragMode = DRAG_CAM_MODE;
@@ -84,10 +94,22 @@ public class AppLogic {
 					break;
 				}
 				break;
+			case Event.MOUSE_CLICKED:
+				graph.addNodeAt(IVec2.make(e.x(), e.y()));
+				break;
 			case Event.MOUSE_RELEASED:
 				switch (e.button()) {
 				case Event.BUTTON1:
-					selectMouseArea();
+					switch (dragMode) {
+					case DRAG_EDGE_MODE:
+						if (fn == null) break;
+						ITransform2D sn = graph.nodeAt(IVec2.make(e.x(), e.y()));
+						if (sn != null) graph.addEdge(fn, sn);
+						break;
+					case DRAG_SELECT_MODE:
+						selectMouseArea();
+						break;
+					}
 					break;
 				}
 				dragMode = -1;

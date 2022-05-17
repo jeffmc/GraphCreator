@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import net.mcmillan.traffic.debug.DebugOptions;
 import net.mcmillan.traffic.math.ITransform2D;
 import net.mcmillan.traffic.simulation.AppLogic;
+import net.mcmillan.traffic.simulation.Graph.Edge;
 
 // Manage all rendering of the highway and traffic simulation, seperate from the control panel.
 public class AppRenderer {
@@ -20,6 +21,7 @@ public class AppRenderer {
 		addMonitor(new LabeledMonitorable("Viewport", () -> "[" + target.getWidth() + ", " + target.getHeight() + "]"));
 		addMonitor(new LabeledMonitorable("Ticks", () -> Long.toString(scene.ticks())));
 		addMonitor(new LabeledMonitorable("Delta", () -> Long.toString(delta)));
+		addMonitor(new LabeledMonitorable("Nodes", () -> Integer.toString(scene.graph.nodes.size())));
 	}
 	
 	// Scene, target, camera assignment
@@ -73,7 +75,10 @@ public class AppRenderer {
 	}
 	// Drawing the highway
 	private void drawScene(CameraGraphics cg) {
-		// TODO: Reimpl app rendering
+		cg.setColor(Color.white);
+		for (ITransform2D n : scene.graph.nodes) cg.drawRect(n);
+		cg.setColor(Color.cyan);
+		for (Edge e : scene.graph.edges) cg.drawLine(e.a.cx(),e.a.cy(),e.b.cx(),e.b.cy());
 	}
 	
 	// Monitorables, meant to easily metrics related to the simulation

@@ -14,6 +14,11 @@ public class ITransform2D {
 		size = IVec2.make(1,1);
 	}
 	
+	public ITransform2D(int x, int y, int w, int h) {
+		pos = IVec2.make(x,y);
+		size = IVec2.make(w,h);
+	}
+	
 	public int x() { return pos.x(); }
 	public int y() { return pos.y(); }
 	public int w() { return size.x(); }
@@ -40,4 +45,11 @@ public class ITransform2D {
 	    a.y() + a.h() > b.y());		
 	}
 	public boolean intersects(ITransform2D o) { return ITransform2D.intersects(this, o); }
+	
+	public boolean contains(IVec2 v) {
+		return (v.x() >= x()&&
+	    v.x() < x() + w() &&
+	    v.y() >= y()&&
+	    v.y() < y() + h());
+	}
 }
