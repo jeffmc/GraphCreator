@@ -6,10 +6,12 @@ import java.util.HashMap;
 public class DebugOptions {
 
 	public static final String 
-			DRAW_GRIDLINES = "Draw Gridlines";
+			DRAW_GRIDLINES = "Draw Gridlines",
+			DRAW_MONITORABLES = "Draw Monitorables";
 	
 	public static final String[] OPTIONS = new String[] {
 			DRAW_GRIDLINES,
+			DRAW_MONITORABLES
 		};
 	
 	private HashMap<String, Boolean> options = new HashMap<>();
@@ -17,6 +19,7 @@ public class DebugOptions {
 	public DebugOptions() {
 		// Defaults
 		options.put(DRAW_GRIDLINES, false);
+		options.put(DRAW_MONITORABLES, true);
 	}
 	
 	public void set(String key, boolean v) {

@@ -4,9 +4,10 @@ import java.awt.Color;
 import java.util.ArrayList;
 
 import net.mcmillan.traffic.debug.DebugOptions;
-import net.mcmillan.traffic.math.ITransform2D;
 import net.mcmillan.traffic.simulation.AppLogic;
 import net.mcmillan.traffic.simulation.Graph.Edge;
+import net.mcmillan.traffic.simulation.Graph.Node;
+import net.mcmillan.traffic.simulation.tools.Tool;
 
 // Manage all rendering of the highway and traffic simulation, seperate from the control panel.
 public class AppRenderer {
@@ -22,6 +23,7 @@ public class AppRenderer {
 		addMonitor(new LabeledMonitorable("Ticks", () -> Long.toString(scene.ticks())));
 		addMonitor(new LabeledMonitorable("Delta", () -> Long.toString(delta)));
 		addMonitor(new LabeledMonitorable("Nodes", () -> Integer.toString(scene.graph.nodes.size())));
+		addMonitor(new LabeledMonitorable("Edges", () -> Integer.toString(scene.graph.edges.size())));
 	}
 	
 	// Scene, target, camera assignment
@@ -52,14 +54,12 @@ public class AppRenderer {
 	private void intl_draw(CameraGraphics cg, long delta) {
 		drawBackground(cg, scene!=null?scene.debugOptions.get(DebugOptions.DRAW_GRIDLINES):false); // Background/Grid
 		if (scene != null) drawScene(cg); // Simulation
-		// Draw mouse selection rect
-		if (scene.getDragMode() == AppLogic.DRAG_SELECT_MODE) {
-			cg.setColor(Color.white);
-			ITransform2D selection = scene.getSelectionTransform();
-			cg.drawRect(selection);
-		}
 		
-		drawMonitorables(cg, delta);
+		// Draw tool
+		Tool t = scene.getTool();
+		if (t != null) t.draw(cg, scene);
+		
+		if (scene.debugOptions.get(DebugOptions.DRAW_MONITORABLES)) drawMonitorables(cg, delta);
 	}
 	private static final Color background = new Color(0,0,0), gridLines = new Color(45,45,45);
 	private static final int gridSize = 32;
@@ -73,12 +73,16 @@ public class AppRenderer {
 		for (int x=(lbound/gridSize)*gridSize;x<rbound;x+=gridSize) cg.drawLine(x,tbound,x,bbound);
 		for (int y=(tbound/gridSize)*gridSize;y<bbound;y+=gridSize) cg.drawLine(lbound,y,rbound,y);
 	}
-	// Drawing the highway
+	// Drawing the graph
 	private void drawScene(CameraGraphics cg) {
 		cg.setColor(Color.white);
-		for (ITransform2D n : scene.graph.nodes) cg.drawRect(n);
+		for (Node n : scene.graph.nodes) cg.drawOval(n.transform);
 		cg.setColor(Color.cyan);
 		for (Edge e : scene.graph.edges) cg.drawLine(e.a.cx(),e.a.cy(),e.b.cx(),e.b.cy());
+		cg.setColor(Color.GREEN);
+		for (Node n : scene.graph.nodes) cg.drawString(n.getLabel(), n.cx(), n.cy());
+		cg.setColor(Color.RED);
+		for (Edge e : scene.graph.edges) cg.drawString(e.getLabel(), e.cx(), e.cy());
 	}
 	
 	// Monitorables, meant to easily metrics related to the simulation

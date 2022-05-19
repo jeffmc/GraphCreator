@@ -32,6 +32,11 @@ public class CameraGraphics {
 		g.setColor(c);
 	}
 	
+	// Oval
+	public void drawOval(ITransform2D t) {
+		g.drawOval((int)t.x()-cam.x,(int)t.y()-cam.x,(int)t.w(),(int)t.h());
+	}
+	
 	// Rect
 	public void drawRect(ITransform2D t) {
 		this.drawRect(t.x(),t.y(),t.w(),t.h());

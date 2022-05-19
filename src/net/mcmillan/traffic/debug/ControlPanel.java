@@ -1,5 +1,6 @@
 package net.mcmillan.traffic.debug;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.util.HashMap;
@@ -9,10 +10,15 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.SpinnerNumberModel;
 
 import net.mcmillan.traffic.simulation.AppLogic;
+import net.mcmillan.traffic.simulation.tools.Tool;
 
 // Meant for the user's modification of variables in the simulation and management of the sim's state.
 public class ControlPanel {
@@ -22,18 +28,26 @@ public class ControlPanel {
 	
 	private JFrame frame = new JFrame("Control Panel");
 	public JFrame getFrame() { return frame; }
-	
+
 	private AppLogic sim;
 	public void setSimulation(AppLogic s) { 
 		sim = s;
 		updateDebugBtns();
-		updateStateBtns();
+		updateToolBtns();
+		sim.nextNodeLabel = () -> {
+			return nodeLabelField.getText();
+		};
+		sim.nextEdgeLabel = () -> {
+			int ret = (int) edgeLabelField.getValue();
+			edgeLabelField.setValue(ret+1);
+			return Integer.toString(ret);
+		};
 	}
 	
-	private JButton playPauseBtn, stepBtn;
-	private static final String PLAY_STR = "Play", PLAY_TOOLTIP = "Continously run the simulation",
-			PAUSE_STR = "Pause", PAUSE_TOOLTIP = "Stop the simulation",
-			STEP_STR = "Step", STEP_TOOLTIP = "Tick the simulation once";
+	private JTextField nodeLabelField;
+	private JSpinner edgeLabelField;
+	
+	private JButton[] toolBtns;
 	
 	private HashMap<String, JToggleButton> debugBtns = new HashMap<>();
 	
@@ -41,45 +55,65 @@ public class ControlPanel {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.PAGE_AXIS));
 		
-		frame.add(makeStatePane());
+		frame.add(makeToolPane());
+		frame.add(Box.createVerticalStrut(SECTION_SEPERATION));
+		frame.add(makeLabelPane());
 		frame.add(Box.createVerticalStrut(SECTION_SEPERATION));
 		frame.add(makeDebugOptionsPane());
 		
 		frame.pack();
 		frame.setVisible(true);
 	}
+
+	private JPanel makeLabelPane() {
+		JPanel pane = new JPanel();
+		pane.setLayout(new BoxLayout(pane, BoxLayout.PAGE_AXIS));
+		pane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createRaisedBevelBorder(), "Label"));
+		
+		JLabel nodeL = new JLabel("Node Label:"), edgeL = new JLabel("Edge Label:");
+		nodeLabelField = new JTextField("A");
+		edgeLabelField = new JSpinner(new SpinnerNumberModel(1,0,Integer.MAX_VALUE,1));
+		nodeLabelField.setAlignmentX(Component.CENTER_ALIGNMENT);
+		edgeLabelField.setAlignmentX(Component.CENTER_ALIGNMENT);
+		nodeL.setAlignmentX(Component.CENTER_ALIGNMENT);
+		edgeL.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		pane.add(nodeL);
+		pane.add(Box.createVerticalStrut(BUTTON_SEPERATION));
+		pane.add(nodeLabelField);
+		pane.add(Box.createVerticalStrut(BUTTON_SEPERATION));
+		pane.add(edgeL);
+		pane.add(Box.createVerticalStrut(BUTTON_SEPERATION));
+		pane.add(edgeLabelField);
+		return pane;
+	}
 	
-	private JPanel makeStatePane() {
+	private JPanel makeToolPane() {
 		JPanel pane = new JPanel();
 		pane.setLayout(new BoxLayout(pane, BoxLayout.LINE_AXIS));
-		pane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createRaisedBevelBorder(), "State"));
+		pane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createRaisedBevelBorder(), "Tools"));
 		
-		playPauseBtn = new JButton(PLAY_STR);
-		playPauseBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
-		playPauseBtn.addActionListener((e) -> {
-			sim.togglePlayPause();
-			updateStateBtns();
-		});
-		stepBtn = new JButton(STEP_STR);
-		stepBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
-		stepBtn.addActionListener((e) -> {
-			sim.step();
-			updateStateBtns();
-		});
-		stepBtn.setToolTipText(STEP_TOOLTIP);
-		
-		pane.add(playPauseBtn);
-		pane.add(Box.createHorizontalStrut(BUTTON_SEPERATION));
-		pane.add(stepBtn);
-		
+		toolBtns = new JButton[AppLogic.TOOLS.length];
+		for (int i=0;i<AppLogic.TOOLS.length;i++) {
+			Tool t = AppLogic.TOOLS[i];
+			JButton btn = new JButton(t.getName());
+			btn.setAlignmentY(Component.CENTER_ALIGNMENT);
+			btn.addActionListener((e) -> {
+				sim.setTool(t);
+				updateToolBtns();
+			});
+			pane.add(btn);
+			toolBtns[i] = btn;
+			if (i<AppLogic.TOOLS.length-1) pane.add(Box.createHorizontalStrut(BUTTON_SEPERATION));
+		}
 		return pane;
 	}
 
-	private void updateStateBtns() {
-		boolean p = sim.isPaused();
-		stepBtn.setEnabled(p);
-		playPauseBtn.setText(p?PLAY_STR:PAUSE_STR);
-		playPauseBtn.setToolTipText(p?PLAY_TOOLTIP:PAUSE_TOOLTIP);
+	private void updateToolBtns() {
+		final Color enabled = Color.GREEN, disabled = Color.WHITE;
+		Tool t = sim.getTool();
+		for (int i=0;i<AppLogic.TOOLS.length;i++) 
+			toolBtns[i].setBackground(AppLogic.TOOLS[i] == t ? enabled : disabled);
 	}
 	
 	private JPanel makeDebugOptionsPane() {
@@ -100,6 +134,10 @@ public class ControlPanel {
 		for (String opt : DebugOptions.OPTIONS) {
 			debugBtns.get(opt).setSelected(sim.debugOptions.get(opt));
 		}
+	}
+
+	public interface LabelFactory {
+		public String get();
 	}
 	
 }

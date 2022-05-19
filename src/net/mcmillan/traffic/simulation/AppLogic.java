@@ -1,17 +1,34 @@
 package net.mcmillan.traffic.simulation;
 
+import net.mcmillan.traffic.debug.ControlPanel;
 import net.mcmillan.traffic.debug.DebugOptions;
 import net.mcmillan.traffic.event.Event;
 import net.mcmillan.traffic.event.EventQueue;
 import net.mcmillan.traffic.gfx.Camera;
-import net.mcmillan.traffic.math.ITransform2D;
-import net.mcmillan.traffic.math.IVec2;
+import net.mcmillan.traffic.simulation.tools.CameraTool;
+import net.mcmillan.traffic.simulation.tools.EdgeTool;
+import net.mcmillan.traffic.simulation.tools.NodeTool;
+import net.mcmillan.traffic.simulation.tools.SelectTool;
+import net.mcmillan.traffic.simulation.tools.Tool;
 
 // Class meant to handle and organize all logic of the application
 public class AppLogic {
 	
 	// Data/Scene
 	public Graph graph = new Graph();
+	
+	// Label setting
+	public ControlPanel.LabelFactory nextNodeLabel, nextEdgeLabel;
+	
+	// Tools
+	public static final Tool[] TOOLS = new Tool[] {
+		new NodeTool(),	
+		new EdgeTool(),	
+		new SelectTool(),	
+	};
+	private Tool currentTool = null;
+	public void setTool(Tool t) { currentTool = t; }
+	public Tool getTool() { return currentTool; }
 	
 	// Subsystems
 	private EventQueue eventq = new EventQueue();
@@ -22,13 +39,7 @@ public class AppLogic {
 	
 	// State management
 	private boolean running = false;
-	private boolean paused = true;
-	private boolean stepOnce = false;
-	public void togglePlayPause() { paused = !paused; }
-	public void step() { stepOnce = true; }
-	
 	public boolean isRunning() { return running; }
-	public boolean isPaused() { return paused; }
 	public void start() {
 		if (running) throw new IllegalStateException("Can't start an already active simulation!");
 		running = true;
@@ -44,26 +55,16 @@ public class AppLogic {
 	public void tick(long delta) {
 		if (!running) throw new IllegalStateException("Can't tick inactive simulation!");
 		pollEvents(); // Run this before any update code.
-		if ((!paused) || stepOnce) {
-			update(delta);
-			ticks++;
-			stepOnce = false;
-		}
+		update(delta);
+		ticks++;
 	}
 	
 	public void update(long delta) {
 		
 	}
 
-	// Dragging TODO: Replace drag mode with more sophisticated Drag System
-	private int dragMode = -1;
-	public int getDragMode() { return dragMode; }
-	public static final int DRAG_EDGE_MODE = 2, DRAG_SELECT_MODE = 1, DRAG_CAM_MODE = 0;
-	public IVec2 mstart = IVec2.make(), mnow = IVec2.make(), msize = IVec2.make(), morigin = IVec2.make();
-	private int cox, coy, msx, msy; // Cam original x,y / Mouse drag start x,y TODO: Place these variables into DragHandler system
-
-	private ITransform2D fn = null;
-	
+	// Tools
+	private Tool camTool = new CameraTool(); // Overlay tool that is handled before other typical tools
 	public void pollEvents() {
 		eventq.unload();
 		while (!eventq.unloadedEmpty()) {
@@ -71,81 +72,29 @@ public class AppLogic {
 			switch (e.code) {
 			case Event.KEY_RELEASED:
 				switch (e.keyCode()) {
-				
+					// TODO: Key handlers
 				}
 				break;
 			case Event.MOUSE_PRESSED:
-				switch (e.button()) {
-//				case Event.BUTTON1:
-//					dragMode = DRAG_SELECT_MODE;
-//					setMouseNowRelativeToCam(e);
-//					mstart.set(mnow);
-//					break;
-				case Event.BUTTON1:
-					dragMode = DRAG_EDGE_MODE;
-					fn = graph.nodeAt(IVec2.make(e.x(), e.y()));
-					break;
-				case Event.BUTTON2:
-					dragMode = DRAG_CAM_MODE;
-					cox = cam.x;
-					coy = cam.y;
-					msx = e.x();
-					msy = e.y();
-					break;
-				}
+				if (camTool.mousePressed(e, this)) break;
+				if (currentTool != null) currentTool.mousePressed(e, this);
 				break;
 			case Event.MOUSE_CLICKED:
-				graph.addNodeAt(IVec2.make(e.x(), e.y()));
+				if (camTool.mouseClicked(e, this)) break;
+				if (currentTool != null) currentTool.mouseClicked(e, this);
 				break;
 			case Event.MOUSE_RELEASED:
-				switch (e.button()) {
-				case Event.BUTTON1:
-					switch (dragMode) {
-					case DRAG_EDGE_MODE:
-						if (fn == null) break;
-						ITransform2D sn = graph.nodeAt(IVec2.make(e.x(), e.y()));
-						if (sn != null) graph.addEdge(fn, sn);
-						break;
-					case DRAG_SELECT_MODE:
-						selectMouseArea();
-						break;
-					}
-					break;
-				}
-				dragMode = -1;
+				if (camTool.mouseReleased(e, this)) break;
+				if (currentTool != null) currentTool.mouseReleased(e, this);
 				break;
 			case Event.MOUSE_DRAGGED:
-				switch (dragMode) {
-				case DRAG_SELECT_MODE:
-					setMouseNowRelativeToCam(e);
-					break;
-				case DRAG_CAM_MODE:
-					cam.x = cox + msx - e.x();
-					cam.y = coy + msy - e.y();
-					break;
-				}
+				if (camTool.mouseDragged(e, this)) break;
+				if (currentTool != null) currentTool.mouseDragged(e, this);
 				break;
 			case Event.MOUSE_WHEEL_MOVED:
 				break;
 			}
 		}
-		msize.set(mstart).sub(mnow).abs();
-		morigin.set(mstart).min(mnow);
-	}
-
-	private void setMouseNowRelativeToCam(Event e) { // Converts from screen -> world coords
-		mnow.set(e.x()+cam.x, e.y()+cam.y);
-	}
-	
-	private void selectMouseArea() {
-		ITransform2D t = getSelectionTransform();
-		System.out.println("[AppLogic] Select mouse area: [" + String.join(",", 
-				Integer.toString(t.x()), Integer.toString(t.y()), 
-				Integer.toString(t.w()), Integer.toString(t.h())) + "]");
-	}
-	
-	public ITransform2D getSelectionTransform() {
-		return new ITransform2D(morigin, msize);
 	}
 
 }
