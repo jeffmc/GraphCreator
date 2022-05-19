@@ -49,7 +49,7 @@ public class Graph {
 		if (b < 0 || b >= nodes.size()) throw new IllegalArgumentException("Index B outside range");
 		boolean v = a > b;
 		int x = v?a:b, y = v?b:a;
-		
+		return 
 	}
 	
 	public class Edge {
