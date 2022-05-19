@@ -26,9 +26,9 @@ public class AppLogic {
 		new EdgeTool(),	
 		new SelectTool(),	
 	};
-	private Tool currentTool = null;
-	public void setTool(Tool t) { currentTool = t; }
-	public Tool getTool() { return currentTool; }
+	private Tool activeTool = null;
+	public void setTool(Tool t) { activeTool = t; }
+	public Tool getTool() { return activeTool; }
 	
 	// Subsystems
 	private EventQueue eventq = new EventQueue();
@@ -59,38 +59,67 @@ public class AppLogic {
 		ticks++;
 	}
 	
-	public void update(long delta) {
-		
-	}
+	public void update(long delta) { }
 
 	// Tools
-	private Tool camTool = new CameraTool(); // Overlay tool that is handled before other typical tools
+//	private Tool camTool = new CameraTool(); // Overlay tool that is handled before other typical tools
+	
+	private Tool[] overlayTools = new Tool[] {
+		new CameraTool(),	
+	};
+	
 	public void pollEvents() {
 		eventq.unload();
 		while (!eventq.unloadedEmpty()) {
 			Event e = eventq.pop();
+			boolean overlayHandled = false;
 			switch (e.code) {
 			case Event.KEY_RELEASED:
 				switch (e.keyCode()) {
 					// TODO: Key handlers
 				}
 				break;
+				
 			case Event.MOUSE_PRESSED:
-				if (camTool.mousePressed(e, this)) break;
-				if (currentTool != null) currentTool.mousePressed(e, this);
+				overlayHandled = false;
+				for (Tool t : overlayTools) {
+					overlayHandled |= t.mousePressed(e, this);
+					if (overlayHandled) break;
+				}
+				if (overlayHandled) break;
+				if (activeTool != null) activeTool.mousePressed(e, this);
 				break;
+				
 			case Event.MOUSE_CLICKED:
-				if (camTool.mouseClicked(e, this)) break;
-				if (currentTool != null) currentTool.mouseClicked(e, this);
+				overlayHandled = false;
+				for (Tool t : overlayTools) {
+					overlayHandled |= t.mouseClicked(e, this);
+					if (overlayHandled) break;
+				}
+				if (overlayHandled) break;
+				if (activeTool != null) activeTool.mouseClicked(e, this);
 				break;
+				
 			case Event.MOUSE_RELEASED:
-				if (camTool.mouseReleased(e, this)) break;
-				if (currentTool != null) currentTool.mouseReleased(e, this);
+				overlayHandled = false;
+				for (Tool t : overlayTools) {
+					overlayHandled |= t.mouseReleased(e, this);
+					if (overlayHandled) break;
+				}
+				if (overlayHandled) break;
+				if (activeTool != null) activeTool.mouseReleased(e, this);
 				break;
+				
 			case Event.MOUSE_DRAGGED:
-				if (camTool.mouseDragged(e, this)) break;
-				if (currentTool != null) currentTool.mouseDragged(e, this);
+				overlayHandled = false;
+				for (Tool t : overlayTools) {
+					overlayHandled |= t.mouseDragged(e, this);
+					if (overlayHandled) break;
+				}
+				if (overlayHandled) break;
+				if (activeTool != null) activeTool.mouseDragged(e, this);
 				break;
+				
 			case Event.MOUSE_WHEEL_MOVED:
 				break;
 			}

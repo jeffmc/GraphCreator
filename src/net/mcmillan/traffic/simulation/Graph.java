@@ -8,12 +8,16 @@ import net.mcmillan.traffic.math.IVec2;
 public class Graph {
 
 	public ArrayList<Node> nodes = new ArrayList<Node>();
-	public void addNodeAt(IVec2 v, String label) { 
+	public Node addNodeAt(IVec2 v, String label) { 
 		Node n = new Node(v, label);
-		for (Node o : nodes)
+		for (Node o : nodes) {
 			if (n.transform.intersects(o.transform))
 				throw new IllegalStateException("Node intersects existing node");
+			if (n.label.equals(o.label))
+				throw new IllegalArgumentException("Node with label '" + label + "' already exists");
+		}
 		nodes.add(n); 
+		return n;
 	}
 	
 	public Node nodeAt(IVec2 v) {

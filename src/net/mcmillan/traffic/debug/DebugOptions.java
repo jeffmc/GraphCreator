@@ -18,7 +18,7 @@ public class DebugOptions {
 	
 	public DebugOptions() {
 		// Defaults
-		options.put(DRAW_GRIDLINES, false);
+		options.put(DRAW_GRIDLINES, true);
 		options.put(DRAW_MONITORABLES, true);
 	}
 	

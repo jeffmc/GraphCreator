@@ -34,7 +34,7 @@ public class CameraGraphics {
 	
 	// Oval
 	public void drawOval(ITransform2D t) {
-		g.drawOval((int)t.x()-cam.x,(int)t.y()-cam.x,(int)t.w(),(int)t.h());
+		g.drawOval((int)t.x()-cam.x,(int)t.y()-cam.y,(int)t.w(),(int)t.h());
 	}
 	
 	// Rect

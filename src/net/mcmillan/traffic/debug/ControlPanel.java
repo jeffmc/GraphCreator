@@ -35,13 +35,30 @@ public class ControlPanel {
 		updateDebugBtns();
 		updateToolBtns();
 		sim.nextNodeLabel = () -> {
-			return nodeLabelField.getText();
+			String str = nodeLabelField.getText();
+			String inc = incrementString(str);
+			nodeLabelField.setText(inc);
+			return str;
 		};
 		sim.nextEdgeLabel = () -> {
 			int ret = (int) edgeLabelField.getValue();
 			edgeLabelField.setValue(ret+1);
 			return Integer.toString(ret);
 		};
+	}
+	private String incrementString(String in) {
+		if (in.length() < 2) return in + "_1";
+		int i = in.lastIndexOf("_");
+		if (i == in.length()-1) return in + "1";
+		String name = in.substring(0, i);
+		try {
+			String num = in.substring(i+1);
+			long l = Long.valueOf(num);
+			return name + "_" + ++l;
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			return in + "_1";
+		}
 	}
 	
 	private JTextField nodeLabelField;
