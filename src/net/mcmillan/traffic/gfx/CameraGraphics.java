@@ -2,6 +2,7 @@ package net.mcmillan.traffic.gfx;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.geom.Rectangle2D;
 
 import net.mcmillan.traffic.math.DTransform2D;
 import net.mcmillan.traffic.math.ITransform2D;
@@ -33,11 +34,11 @@ public class CameraGraphics {
 	}
 	
 	// Oval
-	public void drawOval(ITransform2D t) {
+	public void drawOval(ITransform2D t) { // For drawing nodes
 		g.drawOval((int)t.x()-cam.x,(int)t.y()-cam.y,(int)t.w(),(int)t.h());
 	}
 	
-	// Rect
+	// Rectangle
 	public void drawRect(ITransform2D t) {
 		this.drawRect(t.x(),t.y(),t.w(),t.h());
 	}
@@ -73,6 +74,12 @@ public class CameraGraphics {
 	}
 
 	// Text
+	public void drawCenteredString(String str, int x, int y) { // Not zoomed
+		Rectangle2D r = g.getFontMetrics().getStringBounds(str, g);
+		int oy = (int)(r.getY()/2);
+		int ox = (int)(r.getWidth()/2);
+		g.drawString(str, x-ox-cam.x,y-oy-cam.y);
+	}
 	public void drawString(String str, int x, int y) { // Not zoomed
 		g.drawString(str, x-cam.x,y-cam.y);
 	}

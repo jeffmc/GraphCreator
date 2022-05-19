@@ -80,9 +80,9 @@ public class AppRenderer {
 		cg.setColor(Color.cyan);
 		for (Edge e : scene.graph.edges) cg.drawLine(e.a.cx(),e.a.cy(),e.b.cx(),e.b.cy());
 		cg.setColor(Color.GREEN);
-		for (Node n : scene.graph.nodes) cg.drawString(n.getLabel(), n.cx(), n.cy());
+		for (Node n : scene.graph.nodes) cg.drawCenteredString(n.getLabel(), n.cx(), n.cy());
 		cg.setColor(Color.RED);
-		for (Edge e : scene.graph.edges) cg.drawString(e.getLabel(), e.cx(), e.cy());
+		for (Edge e : scene.graph.edges) cg.drawCenteredString(e.getLabel(), e.cx(), e.cy());
 	}
 	
 	// Monitorables, meant to easily metrics related to the simulation

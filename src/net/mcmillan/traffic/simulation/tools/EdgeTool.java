@@ -26,7 +26,7 @@ public class EdgeTool implements Tool {
 			Camera c = sim.getCamera();
 			tx = e.x()+c.x;
 			ty = e.y()+c.y;
-			fn = sim.graph.nodeAt(IVec2.make(tx, ty));
+			fn = sim.graph.findNodeAt(IVec2.make(tx, ty));
 			return true;
 		}
 		return false;
@@ -39,7 +39,7 @@ public class EdgeTool implements Tool {
 			Camera c = sim.getCamera();
 			tx = e.x()+c.x;
 			ty = e.y()+c.y;
-			Graph.Node sn = sim.graph.nodeAt(IVec2.make(tx,ty));
+			Graph.Node sn = sim.graph.findNodeAt(IVec2.make(tx,ty));
 			if (sn == null) {
 				fn = null;
 				return true;
@@ -70,7 +70,7 @@ public class EdgeTool implements Tool {
 	@Override
 	public void draw(CameraGraphics cg, AppLogic sim) { 
 		if (isActive()) {
-			Graph.Node tn = sim.graph.nodeAt(IVec2.make(tx,ty));
+			Graph.Node tn = sim.graph.findNodeAt(IVec2.make(tx,ty));
 			if (tn != null) {
 				cg.setColor(Color.YELLOW);
 				cg.drawLine(fn.cx(), fn.cy(), tn.cx(), tn.cy());
