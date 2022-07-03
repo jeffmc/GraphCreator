@@ -17,12 +17,12 @@ public class Graph {
 				throw new IllegalArgumentException("Node with label '" + label + "' already exists");
 		}
 		nodes.add(n);
-		int l = nodes.size();
-		if (l > 1) {
-			adjMat = new Edge[(l*(l-1))/2];
-		} else {
-			adjMat = null;
-		}
+//		int l = nodes.size(); TODO: Adj mat updating
+//		if (l > 1) {
+//			adjMat = new Edge[(l*(l-1))/2];
+//		} else {
+//			adjMat = null;
+//		}
 		return n;
 	}
 	public Node findNodeAt(IVec2 v) {
@@ -39,18 +39,18 @@ public class Graph {
 			edges.add(e);
 		}
 	}
-	private Edge[] adjMat;
-	private int findAdjMatIdx(Node a, Node b) {
-		
-	}
-	private int findAdjMatIdx(int a, int b) {
-		if (a == b) throw new IllegalArgumentException("Cannot be same node!");
-		if (a < 0 || a >= nodes.size()) throw new IllegalArgumentException("Index A outside range");
-		if (b < 0 || b >= nodes.size()) throw new IllegalArgumentException("Index B outside range");
-		boolean v = a > b;
-		int x = v?a:b, y = v?b:a;
-		return 
-	}
+//	private Edge[] adjMat; 
+//	private int findAdjMatIdx(Node a, Node b) {
+//		return -1;
+//	}
+//	private int findAdjMatIdx(int a, int b) {
+//		if (a == b) throw new IllegalArgumentException("Cannot be same node!");
+//		if (a < 0 || a >= nodes.size()) throw new IllegalArgumentException("Index A outside range");
+//		if (b < 0 || b >= nodes.size()) throw new IllegalArgumentException("Index B outside range");
+//		boolean v = a > b;
+//		int x = v?a:b, y = v?b:a;
+//		return -1; //TODO: FINISH ADJACENCY MATRIX
+//	}
 	
 	public class Edge {
 		public Node a,b;
